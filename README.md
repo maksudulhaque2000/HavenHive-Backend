@@ -1,4 +1,8 @@
-# HavenHive Backend
+<div align="center">
+
+  # HavenHive Backend
+  <img src="./src/public/server.png" height="400" width="800" alt="HavenHive"/>
+</div>
 
 A professional, feature-complete REST API for the HavenHive real estate marketplace platform. Built with Node.js, Express, TypeScript, and MongoDB.
 

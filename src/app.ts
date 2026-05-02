@@ -26,8 +26,28 @@ export const createApp = () => {
   app.use(express.urlencoded({ extended: true }));
   app.use(morgan(env.NODE_ENV === "production" ? "combined" : "dev"));
 
+  app.get("/", (_req, res) => {
+    res.status(200).json({
+      success: true,
+      message: "Welcome to the HavenHive API",
+      status: "operational",
+      environment: env.NODE_ENV,
+      endpoints: {
+        health: "/health",
+        api: "/api",
+        apiV1: "/api/v1"
+      }
+    });
+  });
+
   app.get("/health", (_req, res) => {
-    res.json({ success: true, message: "HavenHive API is running" });
+    res.status(200).json({
+      success: true,
+      message: "HavenHive API is running successfully",
+      status: "healthy",
+      service: "HavenHive Backend",
+      timestamp: new Date().toISOString()
+    });
   });
 
   app.use("/api/auth", authRoutes);

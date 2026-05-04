@@ -1,5 +1,6 @@
 import { Request, Response } from "express";
 import { User } from "../models/User";
+import { Property } from "../models/Property";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
 
@@ -16,13 +17,29 @@ const sanitizeUser = (user: any) => ({
   updatedAt: user.updatedAt
 });
 
+const ensureSelfOrAdmin = (req: Request, userId: string) => {
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  const isAdmin = req.user.role === "admin";
+  const isSelf = req.user.id === userId;
+
+  if (!isAdmin && !isSelf) {
+    throw new AppError("You do not have permission to perform this action", 403);
+  }
+};
+
 export const getUsers = asyncHandler(async (_req: Request, res: Response) => {
   const users = await User.find().sort("-createdAt");
   res.json({ success: true, data: users.map(sanitizeUser) });
 });
 
 export const getUser = asyncHandler(async (req: Request, res: Response) => {
-  const user = await User.findById(req.params.id);
+  const targetUserId = String(req.params.id);
+  ensureSelfOrAdmin(req, targetUserId);
+
+  const user = await User.findById(targetUserId);
   if (!user) {
     throw new AppError("User not found", 404);
   }
@@ -93,6 +110,63 @@ export const toggleWishlist = asyncHandler(async (req: Request, res: Response) =
   const propertyId = req.params.propertyId;
   const exists = user.wishlist.some((id) => String(id) === propertyId);
   user.wishlist = exists ? user.wishlist.filter((id) => String(id) !== propertyId) : [...user.wishlist, propertyId as any];
+  await user.save();
+
+  res.json({ success: true, wishlist: user.wishlist });
+});
+
+export const getWishlist = asyncHandler(async (req: Request, res: Response) => {
+  const targetUserId = String(req.params.id);
+  ensureSelfOrAdmin(req, targetUserId);
+
+  const user = await User.findById(targetUserId).populate(
+    "wishlist",
+    "title slug price purpose status images location area bedrooms bathrooms featured"
+  );
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  res.json({ success: true, data: user.wishlist });
+});
+
+export const addWishlistItem = asyncHandler(async (req: Request, res: Response) => {
+  const targetUserId = String(req.params.id);
+  ensureSelfOrAdmin(req, targetUserId);
+
+  const [user, property] = await Promise.all([
+    User.findById(targetUserId),
+    Property.findById(req.params.propertyId)
+  ]);
+
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  if (!property) {
+    throw new AppError("Property not found", 404);
+  }
+
+  const exists = user.wishlist.some((id) => String(id) === req.params.propertyId);
+  if (!exists) {
+    user.wishlist = [...user.wishlist, property._id as any];
+    await user.save();
+  }
+
+  res.status(201).json({ success: true, wishlist: user.wishlist });
+});
+
+export const removeWishlistItem = asyncHandler(async (req: Request, res: Response) => {
+  const targetUserId = String(req.params.id);
+  ensureSelfOrAdmin(req, targetUserId);
+
+  const user = await User.findById(targetUserId);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  user.wishlist = user.wishlist.filter((id) => String(id) !== req.params.propertyId);
   await user.save();
 
   res.json({ success: true, wishlist: user.wishlist });

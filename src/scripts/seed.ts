@@ -51,20 +51,11 @@ const seedDatabase = async () => {
 
     const agents = await User.insertMany([
       {
-        name: "John Agent",
-        email: "john.agent@havenhive.com",
-        password: "Agent@123456",
+        name: "Agent User",
+        email: "agent@gmail.com",
+        password: "Password@123",
         role: "agent",
         phone: "+1234567891",
-        isVerified: true,
-        wishlist: []
-      },
-      {
-        name: "Sarah Agent",
-        email: "sarah.agent@havenhive.com",
-        password: "Agent@123456",
-        role: "agent",
-        phone: "+1234567892",
         isVerified: true,
         wishlist: []
       }
@@ -79,7 +70,7 @@ const seedDatabase = async () => {
     // eslint-disable-next-line no-console
     console.log(`  User: ${userEmail} / Password@123`);
     // eslint-disable-next-line no-console
-    console.log(`  Agents: ${agents.map((a) => a.email).join(", ")}`);
+    console.log(`  Agent: ${agents.map((a) => a.email).join(", ")}`);
 
     process.exit(0);
   } catch (error) {

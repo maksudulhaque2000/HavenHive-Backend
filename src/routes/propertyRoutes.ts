@@ -6,6 +6,7 @@ import {
   getProperties,
   getProperty,
   getPropertyStats,
+  toggleFeaturedProperty,
   updateProperty
 } from "../controllers/propertyController";
 import { protect, restrictTo } from "../middleware/auth";
@@ -16,8 +17,11 @@ import { propertyCreateSchema, propertyUpdateSchema } from "../validations/schem
 const router = Router();
 
 router.get("/stats", getPropertyStats);
+router.get("/stats/overview", getPropertyStats);
 router.get("/featured", getFeaturedProperties);
+router.get("/search", getProperties);
 router.get("/", getProperties);
+router.patch("/:id/toggle-featured", protect, restrictTo("admin"), toggleFeaturedProperty);
 router.get("/:id", getProperty);
 router.post("/", protect, restrictTo("agent", "admin"), upload.array("images", 10), validateBody(propertyCreateSchema), createProperty);
 router.patch("/:id", protect, restrictTo("agent", "admin"), upload.array("images", 10), validateBody(propertyUpdateSchema), updateProperty);

@@ -98,6 +98,11 @@ export const reviewSchema = z.object({
   comment: z.string().trim().min(2)
 });
 
+export const reviewUpdateSchema = z.object({
+  rating: z.coerce.number().min(1).max(5),
+  comment: z.string().trim().min(2)
+});
+
 export const blogCreateSchema = z.object({
   title: z.string().trim().min(3),
   content: z.string().trim().min(20),

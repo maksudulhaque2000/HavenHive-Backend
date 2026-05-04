@@ -10,6 +10,7 @@ const envSchema = z.object({
   JWT_SECRET: z.string().min(1, "JWT_SECRET is required"),
   JWT_EXPIRES_IN: z.string().default("7d"),
   CLIENT_ORIGIN: z.string().default("http://localhost:3000"),
+  ALLOWED_ORIGIN: z.string().optional(),
   CLOUDINARY_CLOUD_NAME: z.string().optional(),
   CLOUDINARY_API_KEY: z.string().optional(),
   CLOUDINARY_API_SECRET: z.string().optional(),

@@ -18,7 +18,7 @@ export const createApp = () => {
   app.use(helmet());
   app.use(
     cors({
-      origin: env.CLIENT_ORIGIN,
+      origin: env.ALLOWED_ORIGIN ?? env.CLIENT_ORIGIN,
       credentials: true
     })
   );
@@ -43,10 +43,9 @@ export const createApp = () => {
   app.get("/health", (_req, res) => {
     res.status(200).json({
       success: true,
-      message: "HavenHive API is running successfully",
-      status: "healthy",
+      status: "ok",
       service: "HavenHive Backend",
-      timestamp: new Date().toISOString()
+      timestamp: Date.now()
     });
   });
 

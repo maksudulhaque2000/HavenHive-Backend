@@ -46,6 +46,38 @@ export const getBookings = asyncHandler(async (req: Request, res: Response) => {
   res.json({ success: true, data });
 });
 
+export const getMyBookings = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  const data = await Booking.find({ user: req.user.id })
+    .populate("property", "title slug price purpose status images")
+    .populate("user", "name email role")
+    .sort("-createdAt");
+
+  res.json({ success: true, data });
+});
+
+export const getAgentBookings = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  if (!["agent", "admin"].includes(req.user.role)) {
+    throw new AppError("You do not have permission to perform this action", 403);
+  }
+
+  const filter = req.user.role === "admin" ? {} : { agent: req.user.id };
+  const data = await Booking.find(filter)
+    .populate("property", "title slug price purpose status images")
+    .populate("user", "name email role")
+    .populate("agent", "name email role")
+    .sort("-createdAt");
+
+  res.json({ success: true, data });
+});
+
 export const getBooking = asyncHandler(async (req: Request, res: Response) => {
   const booking = await Booking.findById(req.params.id)
     .populate("property", "title slug price purpose status images")
@@ -72,10 +104,22 @@ export const updateBooking = asyncHandler(async (req: Request, res: Response) =>
 });
 
 export const deleteBooking = asyncHandler(async (req: Request, res: Response) => {
-  const booking = await Booking.findByIdAndDelete(req.params.id);
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  const booking = await Booking.findById(req.params.id);
   if (!booking) {
     throw new AppError("Booking not found", 404);
   }
+
+  const isOwner = String(booking.user) === req.user.id;
+  const isAdmin = req.user.role === "admin";
+  if (!isOwner && !isAdmin) {
+    throw new AppError("You do not have permission to perform this action", 403);
+  }
+
+  await booking.deleteOne();
 
   res.json({ success: true, message: "Booking deleted successfully" });
 });

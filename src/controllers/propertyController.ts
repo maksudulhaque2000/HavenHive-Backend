@@ -101,12 +101,13 @@ export const createProperty = asyncHandler(async (req: Request, res: Response) =
       ? payload.images
       : [];
 
-  const assignedAgent = payload.agent ?? (req.user.role === "agent" ? req.user.id : undefined);
+  let assignedAgent = payload.agent ?? (req.user.role === "agent" ? req.user.id : undefined);
   if (!assignedAgent && req.user.role === "agent") {
     const agent = await User.findById(req.user.id);
     if (!agent) {
       throw new AppError("Agent not found", 404);
     }
+    assignedAgent = req.user.id;
   }
 
   const property = await Property.create({
@@ -170,4 +171,16 @@ export const getPropertyStats = asyncHandler(async (_req: Request, res: Response
     success: true,
     data: { total, published, draft, sold, rented, featured }
   });
+});
+
+export const toggleFeaturedProperty = asyncHandler(async (req: Request, res: Response) => {
+  const property = await Property.findById(req.params.id);
+  if (!property) {
+    throw new AppError("Property not found", 404);
+  }
+
+  property.featured = !property.featured;
+  await property.save();
+
+  res.json({ success: true, data: property });
 });

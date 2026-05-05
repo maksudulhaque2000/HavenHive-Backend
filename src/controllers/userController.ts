@@ -233,3 +233,57 @@ export const getDashboardStats = asyncHandler(async (req: Request, res: Response
     }
   });
 });
+
+export const blockUser = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  user.isBlocked = true;
+  await user.save();
+
+  res.json({ success: true, message: "User has been blocked successfully", data: sanitizeUser(user) });
+});
+
+export const unblockUser = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  user.isBlocked = false;
+  await user.save();
+
+  res.json({ success: true, message: "User has been unblocked successfully", data: sanitizeUser(user) });
+});
+
+export const updateUserRole = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  const { role } = req.body;
+
+  if (!["user", "agent", "admin"].includes(role)) {
+    throw new AppError("Invalid role", 400);
+  }
+
+  const user = await User.findById(req.params.id);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  user.role = role;
+  await user.save();
+
+  res.json({ success: true, message: `User role has been updated to ${role}`, data: sanitizeUser(user) });
+});

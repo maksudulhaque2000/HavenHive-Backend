@@ -15,6 +15,7 @@ export interface IUser {
   };
   wishlist: mongoose.Types.ObjectId[];
   isVerified: boolean;
+  isBlocked: boolean;
   emailVerificationTokenHash?: string;
   emailVerificationTokenExpiresAt?: Date;
   passwordResetTokenHash?: string;
@@ -37,6 +38,7 @@ const userSchema = new Schema<IUser>(
     },
     wishlist: [{ type: Schema.Types.ObjectId, ref: "Property" }],
     isVerified: { type: Boolean, default: false },
+    isBlocked: { type: Boolean, default: false },
     emailVerificationTokenHash: { type: String },
     emailVerificationTokenExpiresAt: { type: Date },
     passwordResetTokenHash: { type: String },

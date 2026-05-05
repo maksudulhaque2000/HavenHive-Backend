@@ -60,6 +60,10 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
     throw new AppError("Invalid email or password", 401);
   }
 
+  if (user.isBlocked) {
+    throw new AppError("Your account has been blocked. Please contact support.", 403);
+  }
+
   const isPasswordValid = await user.comparePassword(password);
   if (!isPasswordValid) {
     throw new AppError("Invalid email or password", 401);

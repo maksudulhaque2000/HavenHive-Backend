@@ -3,6 +3,8 @@ import { User } from "../models/User";
 import { Property } from "../models/Property";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
+import { uploadSingleImage } from "../utils/cloudinaryUpload";
+import { cloudinary } from "../config/cloudinary";
 
 const sanitizeUser = (user: any) => ({
   id: user._id,
@@ -92,6 +94,46 @@ export const updateMyProfile = asyncHandler(async (req: Request, res: Response) 
       publicId: req.body.avatarPublicId ?? user.avatar?.publicId ?? ""
     };
   }
+
+  await user.save();
+  res.json({ success: true, data: sanitizeUser(user) });
+});
+
+export const uploadProfilePicture = asyncHandler(async (req: Request, res: Response) => {
+  if (!req.user) {
+    throw new AppError("You are not logged in", 401);
+  }
+
+  if (!req.file) {
+    throw new AppError("No file provided", 400);
+  }
+
+  const user = await User.findById(req.user.id);
+  if (!user) {
+    throw new AppError("User not found", 404);
+  }
+
+  // Upload new image
+  const uploadedImage = await uploadSingleImage(req.file, "havenhive/profiles");
+  
+  if (!uploadedImage) {
+    throw new AppError("Failed to upload image", 500);
+  }
+
+  // Delete old avatar if exists
+  if (user.avatar?.publicId) {
+    try {
+      await cloudinary.uploader.destroy(user.avatar.publicId);
+    } catch (err) {
+      console.error("Failed to delete old avatar:", err);
+    }
+  }
+
+  // Update user avatar
+  user.avatar = {
+    url: uploadedImage.url,
+    publicId: uploadedImage.publicId
+  };
 
   await user.save();
   res.json({ success: true, data: sanitizeUser(user) });

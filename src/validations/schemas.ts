@@ -104,13 +104,18 @@ export const reviewUpdateSchema = z.object({
 });
 
 export const blogCreateSchema = z.object({
-  title: z.string().trim().min(3),
-  content: z.string().trim().min(20),
-  category: z.string().trim().min(2),
-  published: z.coerce.boolean().optional()
+  title: z.string({ invalid_type_error: "Title is required" }).trim().min(3, "Title must be at least 3 characters"),
+  content: z.string({ invalid_type_error: "Content is required" }).trim().min(20, "Content must be at least 20 characters"),
+  category: z.string({ invalid_type_error: "Category is required" }).trim().min(2, "Category must be at least 2 characters"),
+  published: z.coerce.boolean().default(false).optional()
 });
 
-export const blogUpdateSchema = blogCreateSchema.partial();
+export const blogUpdateSchema = z.object({
+  title: z.string().trim().min(3, "Title must be at least 3 characters").optional(),
+  content: z.string().trim().min(20, "Content must be at least 20 characters").optional(),
+  category: z.string().trim().min(2, "Category must be at least 2 characters").optional(),
+  published: z.coerce.boolean().optional()
+});
 
 export const contactCreateSchema = z.object({
   name: z.string().trim().min(2),

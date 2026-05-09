@@ -98,6 +98,10 @@ export const reviewSchema = z.object({
   comment: z.string().trim().min(2)
 });
 
+export const reviewApprovalSchema = z.object({
+  status: z.enum(["pending", "approved"])
+});
+
 export const reviewUpdateSchema = z.object({
   rating: z.coerce.number().min(1).max(5),
   comment: z.string().trim().min(2)

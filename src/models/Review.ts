@@ -5,6 +5,7 @@ export interface IReview {
   user: mongoose.Types.ObjectId;
   rating: number;
   comment: string;
+  status: "pending" | "approved";
   createdAt?: Date;
   updatedAt?: Date;
 }
@@ -14,7 +15,8 @@ const reviewSchema = new Schema<IReview>(
     property: { type: Schema.Types.ObjectId, ref: "Property", required: true },
     user: { type: Schema.Types.ObjectId, ref: "User", required: true },
     rating: { type: Number, min: 1, max: 5, required: true },
-    comment: { type: String, required: true, trim: true }
+    comment: { type: String, required: true, trim: true },
+    status: { type: String, enum: ["pending", "approved"], default: "pending" }
   },
   { timestamps: true }
 );

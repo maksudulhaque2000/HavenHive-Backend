@@ -14,7 +14,14 @@ const uploadBuffer = (buffer: Buffer, folder: string): Promise<UploadedAsset> =>
 
   return new Promise((resolve, reject) => {
     const uploadStream = cloudinary.uploader.upload_stream(
-      { folder },
+      {
+        folder,
+        resource_type: "image",
+        transformation: [
+          { quality: "auto:good", fetch_format: "auto" },
+          { width: 1920, crop: "limit" }
+        ]
+      },
       (error, result) => {
         if (error || !result) {
           reject(error ?? new Error("Cloudinary upload failed"));

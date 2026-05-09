@@ -4,6 +4,31 @@ export const objectIdSchema = z.string().regex(/^[0-9a-fA-F]{24}$/, "Invalid id"
 
 const optionalTrimmedString = z.string().trim().min(1).optional();
 
+const parseJsonInput = (value: unknown) => {
+  if (typeof value === "string") {
+    try {
+      return JSON.parse(value);
+    } catch {
+      return value;
+    }
+  }
+
+  return value;
+};
+
+const parseAmenitiesInput = (value: unknown) => {
+  const parsed = parseJsonInput(value);
+  if (Array.isArray(parsed)) {
+    return parsed;
+  }
+
+  if (typeof parsed === "string") {
+    return parsed.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+
+  return [];
+};
+
 export const registerSchema = z.object({
   name: z.string().trim().min(2),
   email: z.string().trim().email(),
@@ -51,23 +76,26 @@ export const propertyCreateSchema = z.object({
   purpose: z.enum(["sale", "rent"]),
   price: z.coerce.number().min(0),
   area: z.coerce.number().min(0),
-  location: z.object({
-    address: z.string().trim().min(3),
-    city: z.string().trim().min(2),
-    state: z.string().trim().min(2),
-    country: z.string().trim().min(2),
-    coordinates: z.object({
-      lat: z.coerce.number(),
-      lng: z.coerce.number()
-    }).optional()
-  }),
-  amenities: z.array(z.string().trim()).default([]),
+  location: z.preprocess(
+    parseJsonInput,
+    z.object({
+      address: z.string().trim().min(3),
+      city: z.string().trim().min(2),
+      state: z.string().trim().min(2),
+      country: z.string().trim().min(2),
+      coordinates: z.object({
+        lat: z.coerce.number(),
+        lng: z.coerce.number()
+      }).optional()
+    })
+  ),
+  amenities: z.preprocess(parseAmenitiesInput, z.array(z.string().trim()).default([])),
   images: z.array(
     z.object({
       url: z.string().url(),
       publicId: z.string().trim().min(1)
     })
-  ).optional(),
+  ).optional().or(z.preprocess(() => undefined, z.undefined())),
   status: z.enum(["draft", "published", "sold", "rented", "archived"]).optional(),
   featured: z.coerce.boolean().optional(),
   bedrooms: z.coerce.number().min(0).optional(),

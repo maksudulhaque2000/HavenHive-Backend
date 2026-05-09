@@ -9,7 +9,7 @@ const router = Router();
 
 router.get("/", getBlogs);
 // Get by ID (for editing - requires auth)
-router.get("/:id", protect, restrictTo("admin", "agent"), getBlogById);
+router.get("/:id([0-9a-fA-F]{24})", protect, restrictTo("admin", "agent"), getBlogById);
 // Get by slug (public)
 router.get("/:slug", getBlog);
 router.post("/", protect, restrictTo("admin", "agent"), upload.single("coverImage"), validateBody(blogCreateSchema), createBlog);

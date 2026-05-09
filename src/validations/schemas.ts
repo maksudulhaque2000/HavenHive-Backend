@@ -103,10 +103,16 @@ export const reviewUpdateSchema = z.object({
   comment: z.string().trim().min(2)
 });
 
+const requiredTextField = (label: string, minLength: number) =>
+  z.preprocess(
+    (value) => (typeof value === "string" ? value : ""),
+    z.string().trim().min(minLength, `${label} must be at least ${minLength} characters`)
+  );
+
 export const blogCreateSchema = z.object({
-  title: z.string({ invalid_type_error: "Title is required" }).trim().min(3, "Title must be at least 3 characters"),
-  content: z.string({ invalid_type_error: "Content is required" }).trim().min(20, "Content must be at least 20 characters"),
-  category: z.string({ invalid_type_error: "Category is required" }).trim().min(2, "Category must be at least 2 characters"),
+  title: requiredTextField("Title", 3),
+  content: requiredTextField("Content", 20),
+  category: requiredTextField("Category", 2),
   published: z.coerce.boolean().default(false).optional()
 });
 
